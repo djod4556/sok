@@ -14,11 +14,14 @@
 # entered. We assume that the word just before the base pointer in the stack
 # is indeed the return address to the caller and write that in the back trace.
 #
-# WARNING:
-# Currently this code is not able to exit early when the end of the stack is
-# reached. This means that if you call backtrace with a `size` parameter larger
-# than the total number of stack frames at the time of the call, this code WILL
-# segfault or do somthing bad.
+# To determine when we reached the end of the stack, we assume that the linked
+# list is null-terminated. In other words, the first base pointer pushed in the
+# stack must be null. The return address pushed before that null pointer (ie.
+# first word of the stack) is not considered to be part of the back trace.
+#
+# If the first base pointer is anything other than 0, and the `size` parameter
+# is larger than the number of stack frames at the time of the call, then this
+# code WILL segfault or do somthing bad.
 #
 
 
@@ -34,9 +37,13 @@ backtrace:                              # backtrace(void **array, int size)
     leal    (%ecx, %edx, 4), %edx       # %edx = &array[size]
 
 backtrace.loop:
-    # Exit when %ecx == %edx (ie. we wrote `size` entries into array)
+    # Exit when:
+    #   - %ecx == %edx (we wrote `size` entries into array)
+    #   - %ebp is null (we reached the end of the stack)
     #
     cmpl    %ecx, %edx
+    je      backtrace.exit
+    cmpl    %ebp, $O
     je      backtrace.exit
 
     # At this point:
