@@ -11,10 +11,12 @@
 #define _ASSERT_H_
 
 #include "stdio.h"
+#include "backtrace.h"
 
 #define assert(cond)    do {                                                                                                            \
                                 if (!(cond)) {                                                                                          \
                                         printf("%s (%s:%d): Assertion \"%s\" failed.", __FILE__, __func__, __LINE__, #cond);            \
+                                        backtrace_print();                                                                              \
                                 }                                                                                                       \
                         } while (0)
 

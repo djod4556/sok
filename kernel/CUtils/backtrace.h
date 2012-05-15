@@ -17,6 +17,7 @@ extern "C" {
 
 
 void backtrace(void **array, int size);
+void backtrace_print(void);
 
 
 
